@@ -75,6 +75,10 @@ flutter:
     - assets/pngs/color_blind.png
     - assets/pngs/autism.png
     - assets/pngs/adhd.png
+    - assets/pngs/parent_guardian.png
+    - assets/pngs/teacher.png
+    - assets/pngs/create_profile_child.png
+    - assets/pngs/avatars/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

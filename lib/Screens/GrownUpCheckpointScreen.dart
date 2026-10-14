@@ -9,7 +9,12 @@ import 'SignUpScreen.dart';
 const String kGrownUpImage = 'assets/pngs/grownup.png';
 
 class GrownUpCheckpointScreen extends StatelessWidget {
-  const GrownUpCheckpointScreen({super.key});
+  final String grownUpType;
+
+  const GrownUpCheckpointScreen({
+    super.key,
+    required this.grownUpType,
+  });
 
   @override
   Widget build(BuildContext context) {

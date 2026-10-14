@@ -4,7 +4,7 @@ import '../Widgets/app_sizes.dart';
 import '../Widgets/app_widgets.dart';
 import '../Widgets/screen_shell.dart';
 import 'LearnerTypeScreen.dart';
-import 'GrownUpCheckpointScreen.dart';
+import 'GrownUpTypeScreen.dart';
 
 const String kWelcomeImage = 'assets/pngs/welcome_scene.png';
 const String kWelcomeChildImage = 'assets/pngs/welcome_child.png';
@@ -442,7 +442,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) =>
-                          const GrownUpCheckpointScreen(),
+                          const GrownUpTypeScreen(),
                         ),
                       );
                     },

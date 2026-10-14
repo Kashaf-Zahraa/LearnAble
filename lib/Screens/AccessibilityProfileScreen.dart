@@ -16,24 +16,32 @@ class AccessibilityProfileScreen extends StatefulWidget {
 class _AccessibilityProfileScreenState
     extends State<AccessibilityProfileScreen> {
 
-  final Set<String> _selectedProfiles = {};
+  // =============================================================
+  // SELECTED ACCESSIBILITY PROFILE
+  // Only one profile can be selected at a time.
+  // =============================================================
+
+  String? _selectedProfile;
 
   void _toggleProfile(String profile) {
     setState(() {
-      if (_selectedProfiles.contains(profile)) {
-        _selectedProfiles.remove(profile);
+      // If the same option is tapped again, deselect it.
+      // Otherwise, select the new option and automatically
+      // deselect the previous one.
+      if (_selectedProfile == profile) {
+        _selectedProfile = null;
       } else {
-        _selectedProfiles.add(profile);
+        _selectedProfile = profile;
       }
     });
   }
 
   void _continue() {
-    if (_selectedProfiles.isEmpty) {
+    if (_selectedProfile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Please choose at least one option.',
+            'Please choose an accessibility profile.',
           ),
         ),
       );
@@ -55,6 +63,7 @@ class _AccessibilityProfileScreenState
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+
               // =============================================
               // TOP BAR
               // =============================================
@@ -125,7 +134,7 @@ class _AccessibilityProfileScreenState
               SizedBox(height: AppSpace.s6),
 
               Text(
-                'Select the support that helps you learn best.',
+                'Choose the support option that best fits your learning needs.',
                 textAlign: TextAlign.center,
                 style: AppText.body.c(Fg.muted),
               ),
@@ -148,8 +157,11 @@ class _AccessibilityProfileScreenState
                       const Color(0xFFFFF1C9),
                       accentColor:
                       const Color(0xFFB47A15),
+
+                      // SINGLE SELECTION
                       selected:
-                      _selectedProfiles.contains('vision'),
+                      _selectedProfile == 'vision',
+
                       onTap: () =>
                           _toggleProfile('vision'),
                     ),
@@ -166,8 +178,11 @@ class _AccessibilityProfileScreenState
                       const Color(0xFFE5EFFF),
                       accentColor:
                       const Color(0xFF5269D8),
+
+                      // SINGLE SELECTION
                       selected:
-                      _selectedProfiles.contains('hearing'),
+                      _selectedProfile == 'hearing',
+
                       onTap: () =>
                           _toggleProfile('hearing'),
                     ),
@@ -192,10 +207,11 @@ class _AccessibilityProfileScreenState
                       const Color(0xFFDDF5E7),
                       accentColor:
                       const Color(0xFF37845A),
+
+                      // SINGLE SELECTION
                       selected:
-                      _selectedProfiles.contains(
-                        'non_verbal',
-                      ),
+                      _selectedProfile == 'non_verbal',
+
                       onTap: () =>
                           _toggleProfile('non_verbal'),
                     ),
@@ -212,10 +228,11 @@ class _AccessibilityProfileScreenState
                       const Color(0xFFF2E9FF),
                       accentColor:
                       const Color(0xFF8A5BD6),
+
+                      // SINGLE SELECTION
                       selected:
-                      _selectedProfiles.contains(
-                        'color_blind',
-                      ),
+                      _selectedProfile == 'color_blind',
+
                       onTap: () =>
                           _toggleProfile('color_blind'),
                     ),
@@ -240,8 +257,11 @@ class _AccessibilityProfileScreenState
                       const Color(0xFFFFE7EA),
                       accentColor:
                       const Color(0xFFD45B70),
+
+                      // SINGLE SELECTION
                       selected:
-                      _selectedProfiles.contains('autism'),
+                      _selectedProfile == 'autism',
+
                       onTap: () =>
                           _toggleProfile('autism'),
                     ),
@@ -258,8 +278,11 @@ class _AccessibilityProfileScreenState
                       const Color(0xFFE1F7F4),
                       accentColor:
                       const Color(0xFF318B83),
+
+                      // SINGLE SELECTION
                       selected:
-                      _selectedProfiles.contains('adhd'),
+                      _selectedProfile == 'adhd',
+
                       onTap: () =>
                           _toggleProfile('adhd'),
                     ),
@@ -308,7 +331,7 @@ class _AccessibilityProfileScreenState
 
                   Flexible(
                     child: Text(
-                      'You can change these choices later.',
+                      'You can change this choice later.',
                       textAlign: TextAlign.center,
                       style: AppText.caption.c(Fg.muted),
                     ),
@@ -322,6 +345,7 @@ class _AccessibilityProfileScreenState
     );
   }
 }
+
 
 // =============================================================
 // ACCESSIBILITY OPTION CARD
@@ -352,20 +376,25 @@ class _AccessibilityCard extends StatelessWidget {
         onTap: onTap,
         borderRadius:
         BorderRadius.circular(AppRadius.card),
+
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           height: Sz.w(125),
           padding: EdgeInsets.all(AppSpace.s10),
+
           decoration: BoxDecoration(
             color: backgroundColor,
+
             borderRadius:
             BorderRadius.circular(AppRadius.card),
+
             border: Border.all(
               color: selected
                   ? accentColor
                   : accentColor.withValues(alpha: 0.15),
               width: selected ? 2.5 : 1.2,
             ),
+
             boxShadow: selected
                 ? [
               BoxShadow(
@@ -377,22 +406,24 @@ class _AccessibilityCard extends StatelessWidget {
             ]
                 : [],
           ),
+
           child: Stack(
             children: [
               Column(
                 mainAxisAlignment:
                 MainAxisAlignment.center,
                 children: [
+
                   Expanded(
                     child: Center(
                       child: Image.asset(
                         imagePath,
                         fit: BoxFit.contain,
+
                         errorBuilder:
                             (_, error, __) {
                           return Icon(
-                            Icons
-                                .accessibility_new_rounded,
+                            Icons.accessibility_new_rounded,
                             size: Sz.w(40),
                             color: accentColor,
                           );
@@ -411,7 +442,10 @@ class _AccessibilityCard extends StatelessWidget {
                 ],
               ),
 
-              // Selected check
+              // =============================================
+              // SELECTED CHECKMARK
+              // =============================================
+
               if (selected)
                 Positioned(
                   right: 0,
@@ -419,9 +453,11 @@ class _AccessibilityCard extends StatelessWidget {
                   child: Container(
                     width: Sz.w(25),
                     height: Sz.w(25),
+
                     decoration: BoxDecoration(
                       color: accentColor,
                       shape: BoxShape.circle,
+
                       boxShadow: [
                         BoxShadow(
                           color: accentColor
@@ -430,6 +466,7 @@ class _AccessibilityCard extends StatelessWidget {
                         ),
                       ],
                     ),
+
                     child: Icon(
                       Icons.check_rounded,
                       color: Colors.white,
