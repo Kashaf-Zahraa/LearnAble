@@ -43,3 +43,31 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Secrets / keys
+.env
+key.properties
+*.jks
+*.keystore
+
+# Firebase config
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# Cloud Functions
+functions/node_modules/
+
+# Secrets / keys
+.env
+key.properties
+*.jks
+*.keystore
+
+# Firebase config
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# Cloud Functions
+functions/node_modules/
