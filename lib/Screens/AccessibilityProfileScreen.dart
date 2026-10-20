@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../Widgets/app_sizes.dart';
 import '../Widgets/app_widgets.dart';
 import '../Widgets/screen_shell.dart';
-import 'CreateLearnerProfileScreen.dart';
+
+import 'CustomizePreferencesScreen.dart';
 
 class AccessibilityProfileScreen extends StatefulWidget {
   const AccessibilityProfileScreen({super.key});
@@ -50,7 +51,7 @@ class _AccessibilityProfileScreenState
 
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => const CreateLearnerProfileScreen(),
+        builder: (_) => CustomizePreferencesScreen(profile: _selectedProfile),
       ),
     );
   }

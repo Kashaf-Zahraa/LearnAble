@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../Models/learner_profile.dart';
+import 'ChooseSubjectsScreen.dart';
+
 import '../Widgets/app_sizes.dart';
 import '../Widgets/app_widgets.dart';
 import '../Widgets/screen_shell.dart';
@@ -345,29 +348,17 @@ class _CreateLearnerProfileScreenState
   // ============================================================
 
   void _buildProfile() {
-    final selectedAvatarPath =
-    _avatars[_selectedAvatar];
-
-    // Later we can save these values to Firebase:
-    //
-    // nickname: _nickname
-    // age: _age
-    // grade: _grade
-    // avatar: selectedAvatarPath
-
-    debugPrint('Nickname: $_nickname');
-    debugPrint('Age: $_age');
-    debugPrint('Grade: $_grade');
-    debugPrint(
-      'Avatar: $selectedAvatarPath',
+    LearnerProfile.current = LearnerProfile(
+      nickname: _nickname,
+      age: _age,
+      grade: _grade,
+      avatarPath: _avatars[_selectedAvatar],
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "$_nickname's learning space is ready!",
-        ),
-      ),
+    debugPrint('Profile: ${LearnerProfile.current.toMap()}');
+
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ChooseSubjectsScreen()),
     );
   }
 
