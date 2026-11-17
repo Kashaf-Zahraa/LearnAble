@@ -71,3 +71,13 @@ lib/firebase_options.dart
 
 # Cloud Functions
 functions/node_modules/
+
+# Python backend
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Android generated build files
+/android/build/

@@ -1,10 +1,11 @@
+
 import 'package:flutter/material.dart';
 
 import '../Widgets/app_sizes.dart';
-import '../Widgets/app_widgets.dart';
 import '../Widgets/screen_shell.dart';
 import 'CreateLearnerProfileScreen.dart';
 import 'AccessibilityProfileScreen.dart';
+import 'LoginLearnerScreen.dart';
 
 const String kIndependentLearnerImage =
     'assets/pngs/independent_learner.png';
@@ -23,15 +24,19 @@ class LearnerTypeScreen extends StatelessWidget {
       BuildContext context,
       String learnerType,
       ) {
-    // Supported learner goes to accessibility selection
     if (learnerType == 'supported') {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => const AccessibilityProfileScreen(),
         ),
       );
+    } else if (learnerType == 'existing') {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const LoginLearnerScreen(),
+        ),
+      );
     } else {
-      // Independent learner goes directly to profile creation
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => const CreateLearnerProfileScreen(),
@@ -123,7 +128,7 @@ class LearnerTypeScreen extends StatelessWidget {
               SizedBox(height: AppSpace.s20),
 
               // =====================================================
-              // INDEPENDENT LEARNER
+              // OPTION 1: INDEPENDENT LEARNER
               // =====================================================
 
               _LearnerChoiceCard(
@@ -134,17 +139,14 @@ class LearnerTypeScreen extends StatelessWidget {
                 backgroundColor: const Color(0xFFE5EFFF),
                 accentColor: const Color(0xFF5269D8),
                 onTap: () {
-                  _continue(
-                    context,
-                    'independent',
-                  );
+                  _continue(context, 'independent');
                 },
               ),
 
               SizedBox(height: AppSpace.s14),
 
               // =====================================================
-              // SUPPORTED LEARNER
+              // OPTION 2: SUPPORTED LEARNER
               // =====================================================
 
               _LearnerChoiceCard(
@@ -155,11 +157,112 @@ class LearnerTypeScreen extends StatelessWidget {
                 backgroundColor: const Color(0xFFF2E9FF),
                 accentColor: const Color(0xFF8A5BD6),
                 onTap: () {
-                  _continue(
-                    context,
-                    'supported',
-                  );
+                  _continue(context, 'supported');
                 },
+              ),
+
+              SizedBox(height: AppSpace.s14),
+
+              // =====================================================
+              // OPTION 3: LOGIN TO EXISTING PROFILE
+              // =====================================================
+
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    _continue(context, 'existing');
+                  },
+                  borderRadius:
+                  BorderRadius.circular(AppRadius.sheet),
+                  child: Container(
+                    padding: EdgeInsets.all(AppSpace.s14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE1F7F4),
+                      borderRadius:
+                      BorderRadius.circular(AppRadius.sheet),
+                      border: Border.all(
+                        color: const Color(0xFF318B83)
+                            .withValues(alpha: 0.25),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF318B83)
+                              .withValues(alpha: 0.10),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: Sz.w(105),
+                          height: Sz.w(105),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(
+                              alpha: 0.75,
+                            ),
+                            borderRadius:
+                            BorderRadius.circular(
+                              AppRadius.card,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.lock_person_rounded,
+                            size: AppSize.iconXl,
+                            color: const Color(0xFF318B83),
+                          ),
+                        ),
+
+                        SizedBox(width: AppSpace.s14),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Login to Existing Profile',
+                                style: AppText.subheading.c(Fg.ink),
+                              ),
+
+                              SizedBox(height: AppSpace.s6),
+
+                              Text(
+                                'Already have a learner profile? Log in and continue your learning journey.',
+                                style: AppText.bodySm.c(Fg.muted),
+                              ),
+
+                              SizedBox(height: AppSpace.s10),
+
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Login',
+                                    style: AppText.label.c(
+                                      const Color(0xFF318B83),
+                                    ),
+                                  ),
+
+                                  SizedBox(width: AppSpace.s4),
+
+                                  Icon(
+                                    Icons.arrow_forward_rounded,
+                                    size: AppSize.iconXs,
+                                    color: const Color(0xFF318B83),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
 
               SizedBox(height: AppSpace.s16),
@@ -237,8 +340,7 @@ class _LearnerChoiceCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color:
-                accentColor.withValues(alpha: 0.10),
+                color: accentColor.withValues(alpha: 0.10),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -263,7 +365,7 @@ class _LearnerChoiceCard extends StatelessWidget {
                 child: Image.asset(
                   imagePath,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, error, __) {
+                  errorBuilder: (context, error, stackTrace) {
                     debugPrint(
                       'LEARNER IMAGE ERROR: $error',
                     );

@@ -1,12 +1,13 @@
-/// Abhi ka learner. Baad mein PostgreSQL se load hoga.
 
 class LearnerProfile {
+  final String? learnerId;
   final String nickname;
   final int age;
   final String grade;
   final String avatarPath;
 
   const LearnerProfile({
+    this.learnerId,
     required this.nickname,
     required this.age,
     required this.grade,
@@ -21,6 +22,7 @@ class LearnerProfile {
   );
 
   Map<String, dynamic> toMap() => {
+    'learner_id': learnerId,
     'nickname': nickname,
     'age': age,
     'grade': grade,

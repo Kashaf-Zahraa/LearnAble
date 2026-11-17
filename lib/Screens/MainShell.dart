@@ -1,13 +1,28 @@
+
 import 'package:flutter/material.dart';
 
 import '../Widgets/app_sizes.dart';
 import '../Widgets/screen_shell.dart';
+
+import '../Models/learner_profile.dart';
+import '../Models/subject.dart';
+import '../Services/learner_storage.dart';
+
 import 'ChildHomeTab.dart';
 import 'SubjectLibraryTab.dart';
+import 'WelcomeScreen.dart';
+
+// =============================================================
+// MAIN SHELL
+// =============================================================
 
 class MainShell extends StatefulWidget {
   final int initialIndex;
-  const MainShell({super.key, this.initialIndex = 0});
+
+  const MainShell({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<MainShell> createState() => _MainShellState();
@@ -16,36 +31,132 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   late int _index = widget.initialIndex;
 
+  bool _isLoggingOut = false;
+
   static const _items = [
-    _NavItem(Icons.home_outlined, Icons.home_rounded, 'Home'),
-    _NavItem(Icons.menu_book_outlined, Icons.menu_book_rounded, 'Learn'),
-    _NavItem(Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Tutor'),
-    _NavItem(Icons.emoji_events_outlined, Icons.emoji_events_rounded, 'Rewards'),
-    _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profile'),
+    _NavItem(
+      Icons.home_outlined,
+      Icons.home_rounded,
+      'Home',
+    ),
+    _NavItem(
+      Icons.menu_book_outlined,
+      Icons.menu_book_rounded,
+      'Learn',
+    ),
+    _NavItem(
+      Icons.emoji_events_outlined,
+      Icons.emoji_events_rounded,
+      'Rewards',
+    ),
+    _NavItem(
+      Icons.settings_outlined,
+      Icons.settings_rounded,
+      'Settings',
+    ),
+    _NavItem(
+      Icons.person_outline_rounded,
+      Icons.person_rounded,
+      'Profile',
+    ),
   ];
+
+  // =============================================================
+  // LOGOUT
+  // =============================================================
+
+  Future<void> _logout() async {
+    if (_isLoggingOut) return;
+
+    setState(() {
+      _isLoggingOut = true;
+    });
+
+    try {
+      await LearnerStorage.clearLearnerId();
+
+      if (!mounted) return;
+
+      LearnerProfile.current = const LearnerProfile(
+        nickname: '',
+        age: 0,
+        grade: '',
+        avatarPath: 'assets/pngs/avatars/avatar_1.png',
+      );
+
+      SubjectCatalog.selected.clear();
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const WelcomeScreen(),
+        ),
+            (route) => false,
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: $error'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoggingOut = false;
+        });
+      }
+    }
+  }
+
+  // =============================================================
+  // MAIN BUILD
+  // =============================================================
 
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      ChildHomeTab(onOpenLibrary: () => setState(() => _index = 1)),
-      const SubjectLibraryTab(),
-      _ComingSoon(
-        icon: Icons.chat_bubble_rounded,
-        title: 'Lumi Tutor',
-        message: 'Your friendly AI tutor is on its way.',
-        onHome: () => setState(() => _index = 0),
+      // HOME
+      ChildHomeTab(
+        onOpenLibrary: () {
+          setState(() {
+            _index = 1;
+          });
+        },
       ),
+
+      // LEARN
+      const SubjectLibraryTab(),
+
+      // REWARDS
       _ComingSoon(
         icon: Icons.emoji_events_rounded,
         title: 'Rewards',
         message: 'Stars, badges and surprises are coming soon.',
-        onHome: () => setState(() => _index = 0),
+        onHome: () {
+          setState(() {
+            _index = 0;
+          });
+        },
       ),
+
+      // SETTINGS
       _ComingSoon(
-        icon: Icons.person_rounded,
-        title: 'Profile',
-        message: 'Your profile and settings will live here.',
-        onHome: () => setState(() => _index = 0),
+        icon: Icons.settings_rounded,
+        title: 'Settings',
+        message: 'Personalize your learning experience here soon.',
+        onHome: () {
+          setState(() {
+            _index = 0;
+          });
+        },
+      ),
+
+      // PROFILE
+      _LearnerProfileTab(
+        onLogout: _logout,
+        isLoggingOut: _isLoggingOut,
       ),
     ];
 
@@ -56,7 +167,9 @@ class _MainShellState extends State<MainShell> {
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSize.maxWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppSize.maxWidth,
+            ),
             child: SizedBox.expand(
               child: KeyedSubtree(
                 key: ValueKey(_index),
@@ -69,18 +182,279 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: _BottomNav(
         items: _items,
         index: _index,
-        onTap: (i) => setState(() => _index = i),
+        onTap: (i) {
+          setState(() {
+            _index = i;
+          });
+        },
       ),
     );
   }
 }
 
+// =============================================================
+// LEARNER PROFILE TAB
+// =============================================================
+
+class _LearnerProfileTab extends StatelessWidget {
+  final VoidCallback onLogout;
+  final bool isLoggingOut;
+
+  const _LearnerProfileTab({
+    required this.onLogout,
+    required this.isLoggingOut,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final learner = LearnerProfile.current;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(AppSpace.s24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'My Profile',
+              textAlign: TextAlign.center,
+              style: AppText.titleLg.c(Fg.ink),
+            ),
+
+            SizedBox(height: AppSpace.s8),
+
+            Text(
+              'Your learning journey starts here.',
+              textAlign: TextAlign.center,
+              style: AppText.body.c(Fg.muted),
+            ),
+
+            SizedBox(height: AppSpace.s24),
+
+            // AVATAR
+            Container(
+              width: 120,
+              height: 120,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Fg.tint,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Fg.blue.withValues(alpha: 0.20),
+                  width: 2,
+                ),
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  learner.avatarPath,
+                  fit: BoxFit.contain,
+                  errorBuilder: (
+                      context,
+                      error,
+                      stackTrace,
+                      ) {
+                    return Icon(
+                      Icons.person_rounded,
+                      size: 65,
+                      color: Fg.blue,
+                    );
+                  },
+                ),
+              ),
+            ),
+
+            SizedBox(height: AppSpace.s16),
+
+            // LEARNER NAME
+            Text(
+              learner.nickname.isNotEmpty
+                  ? learner.nickname
+                  : 'Learner',
+              textAlign: TextAlign.center,
+              style: AppText.titleLg.c(Fg.ink),
+            ),
+
+            SizedBox(height: AppSpace.s6),
+
+            Text(
+              learner.grade,
+              textAlign: TextAlign.center,
+              style: AppText.body.c(Fg.muted),
+            ),
+
+            SizedBox(height: AppSpace.s24),
+
+            // PROFILE DETAILS
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(AppSpace.s16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(
+                  AppRadius.sheet,
+                ),
+                border: Border.all(
+                  color: Fg.border,
+                ),
+              ),
+              child: Column(
+                children: [
+                  _ProfileDetailRow(
+                    icon: Icons.person_outline_rounded,
+                    label: 'Nickname',
+                    value: learner.nickname,
+                  ),
+
+                  const Divider(height: 24),
+
+                  _ProfileDetailRow(
+                    icon: Icons.cake_outlined,
+                    label: 'Age',
+                    value: learner.age > 0
+                        ? '${learner.age} years'
+                        : 'Not available',
+                  ),
+
+                  const Divider(height: 24),
+
+                  _ProfileDetailRow(
+                    icon: Icons.school_outlined,
+                    label: 'Grade',
+                    value: learner.grade,
+                  ),
+
+                  const Divider(height: 24),
+
+                  _ProfileDetailRow(
+                    icon: Icons.menu_book_outlined,
+                    label: 'Subjects',
+                    value:
+                    '${SubjectCatalog.selected.length} selected',
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: AppSpace.s24),
+
+            // LOGOUT BUTTON
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton.icon(
+                onPressed: isLoggingOut ? null : onLogout,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFD45B70),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      AppRadius.card,
+                    ),
+                  ),
+                ),
+                icon: isLoggingOut
+                    ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+                    : const Icon(
+                  Icons.logout_rounded,
+                ),
+                label: Text(
+                  isLoggingOut
+                      ? 'Logging out...'
+                      : 'Logout',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(height: AppSpace.s16),
+
+            Text(
+              'You can log in again using your 4-digit PIN.',
+              textAlign: TextAlign.center,
+              style: AppText.caption.c(Fg.muted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =============================================================
+// PROFILE DETAIL ROW
+// =============================================================
+
+class _ProfileDetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _ProfileDetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: AppSize.icon,
+          color: Fg.blue,
+        ),
+
+        SizedBox(width: AppSpace.s14),
+
+        Expanded(
+          child: Text(
+            label,
+            style: AppText.body.c(Fg.muted),
+          ),
+        ),
+
+        Flexible(
+          child: Text(
+            value.isNotEmpty ? value : 'Not available',
+            textAlign: TextAlign.end,
+            style: AppText.body.c(Fg.ink),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// =============================================================
+// NAVIGATION ITEM MODEL
+// =============================================================
+
 class _NavItem {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  const _NavItem(this.icon, this.activeIcon, this.label);
+
+  const _NavItem(
+      this.icon,
+      this.activeIcon,
+      this.label,
+      );
 }
+
+// =============================================================
+// BOTTOM NAVIGATION
+// =============================================================
 
 class _BottomNav extends StatelessWidget {
   final List<_NavItem> items;
@@ -98,10 +472,15 @@ class _BottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: const Border(top: BorderSide(color: Fg.border)),
+        border: const Border(
+          top: BorderSide(
+            color: Fg.border,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF22466A).withValues(alpha: 0.08),
+            color: const Color(0xFF22466A)
+                .withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, -4),
           ),
@@ -110,9 +489,11 @@ class _BottomNav extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Center(
-          heightFactor: 1, // <-- asli fix: bar ki height content tak seemit
+          heightFactor: 1,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSize.maxWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppSize.maxWidth,
+            ),
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: AppSpace.s8,
@@ -138,6 +519,10 @@ class _BottomNav extends StatelessWidget {
   }
 }
 
+// =============================================================
+// NAVIGATION BUTTON
+// =============================================================
+
 class _NavButton extends StatelessWidget {
   final _NavItem item;
   final bool selected;
@@ -156,25 +541,44 @@ class _NavButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadius.card),
+        borderRadius: BorderRadius.circular(
+          AppRadius.card,
+        ),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: EdgeInsets.symmetric(vertical: AppSpace.s8),
+          duration: const Duration(
+            milliseconds: 180,
+          ),
+          padding: EdgeInsets.symmetric(
+            vertical: AppSpace.s8,
+          ),
           decoration: BoxDecoration(
-            color: selected ? Fg.tint : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppRadius.card),
+            color: selected
+                ? Fg.tint
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(
+              AppRadius.card,
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(selected ? item.activeIcon : item.icon,
-                  size: AppSize.iconLg, color: color),
+              Icon(
+                selected
+                    ? item.activeIcon
+                    : item.icon,
+                size: AppSize.iconLg,
+                color: color,
+              ),
+
               SizedBox(height: AppSpace.s2),
+
               Text(
                 item.label,
                 style: AppText.captionBold.copyWith(
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight: selected
+                      ? FontWeight.w800
+                      : FontWeight.w600,
                   color: color,
                 ),
               ),
@@ -185,6 +589,10 @@ class _NavButton extends StatelessWidget {
     );
   }
 }
+
+// =============================================================
+// COMING SOON SCREEN
+// =============================================================
 
 class _ComingSoon extends StatelessWidget {
   final IconData icon;
@@ -207,20 +615,45 @@ class _ComingSoon extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const LumiFace(size: 90, color: Colors.white),
+            const LumiFace(
+              size: 90,
+              color: Colors.white,
+            ),
+
             SizedBox(height: AppSpace.s16),
-            Icon(icon, size: AppSize.iconXl, color: Fg.btn),
+
+            Icon(
+              icon,
+              size: AppSize.iconXl,
+              color: Fg.btn,
+            ),
+
             SizedBox(height: AppSpace.s8),
-            Text(title, style: AppText.titleLg.c(Fg.ink)),
+
+            Text(
+              title,
+              style: AppText.titleLg.c(Fg.ink),
+            ),
+
             SizedBox(height: AppSpace.s6),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: AppText.body.c(Fg.muted)),
+
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: AppText.body.c(Fg.muted),
+            ),
+
             SizedBox(height: AppSpace.s20),
+
             OutlinedButton.icon(
               onPressed: onHome,
-              icon: Icon(Icons.home_rounded, size: AppSize.iconSm),
-              label: const Text('Back to Home'),
+              icon: Icon(
+                Icons.home_rounded,
+                size: AppSize.iconSm,
+              ),
+              label: const Text(
+                'Back to Home',
+              ),
             ),
           ],
         ),
